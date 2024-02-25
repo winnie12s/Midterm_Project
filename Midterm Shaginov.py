@@ -1,5 +1,31 @@
 import csv
 
+class EmployeeAdder:
+    def __init__(self, file_path):
+        self.file_path = file_path
+
+    def add_new_employees(self):
+        employees = []
+
+        while True:
+            add_new = input("Do you want to add a new employee? (yes/no): ").lower()
+            if add_new != 'yes':
+                break
+
+            name = input("Enter the name: ")
+            surname = input("Enter the surname: ")
+            employee_id = input("Enter the ID: ")
+            country = input("Enter the country: ")
+
+            employees.append({'name': name, 'surname': surname, 'ID': employee_id, 'country': country})
+
+        with open(self.file_path, 'a', newline='') as file:
+            fieldnames = ['name', 'surname', 'ID', 'country']
+            writer = csv.DictWriter(file, fieldnames=fieldnames)
+            writer.writerows(employees)
+
+        print("Step 2: New employees added")
+
 def remove_duplicates(file_path):
     with open(file_path, 'r') as file:
         reader = csv.DictReader(file)
@@ -21,23 +47,6 @@ def remove_duplicates(file_path):
         writer.writerows(unique_rows)
 
     print("Step 1: Duplicates removed")
-
-def add_new_employees(file_path):
-    while True:
-        add_new = input("Do you want to add a new employee? (yes/no): ").lower()
-        if add_new != 'yes':
-            break
-
-        name = input("Enter the name: ")
-        surname = input("Enter the surname: ")
-        employee_id = input("Enter the ID: ")
-        country = input("Enter the country: ")
-
-        with open(file_path, 'a', newline='') as file:
-            writer = csv.writer(file)
-            writer.writerow([name, surname, employee_id, country])
-
-    print("Step 2: New employees added")
 
 def add_missing_info(file_path):
     with open(file_path, 'r') as file:
@@ -74,30 +83,24 @@ def update_salaries_info(employees_file_path, salaries_file_path):
         name = salary_row['name']
         surname = salary_row['surname']
 
-        # Find the employee in the employees file
         matching_employees = [employee for employee in employees_rows if
                               employee['name'] == name and employee['surname'] == surname]
 
         if matching_employees:
-            # If there are multiple matches, just pick the first one
             matched_employee = matching_employees[0]
 
-            # Update ID and country information
             salary_row['ID'] = matched_employee['ID']
             salary_row['country'] = matched_employee['country']
 
-            # Check and update net salary
             if not salary_row['net salary']:
                 net_salary = round(float(input(f"Enter net salary for {name} {surname} (ID: {matched_employee['ID']}): ")), 2)
                 salary_row['net salary'] = net_salary
 
-            # Calculate and update gross salary based on country
             if salary_row['country'].lower() == 'georgia':
                 salary_row['gross salary'] = round(float(salary_row['net salary']) / 0.784, 2)
             else:
                 salary_row['gross salary'] = round(float(salary_row['net salary']) / 0.8, 2)
 
-            # Calculate and update pension based on country
             if salary_row['country'].lower() == 'georgia':
                 pension = round(float(salary_row['gross salary']) * 0.02 * 2, 2)
                 salary_row['pension'] = pension
@@ -105,7 +108,6 @@ def update_salaries_info(employees_file_path, salaries_file_path):
             else:
                 salary_row['pension'] = 0
 
-            # Calculate and update tax based on gross salary and pension
             tax_base = float(salary_row['gross salary']) - (float(salary_row['pension']) / 2)
             tax = round(tax_base * 0.2, 2)
             salary_row['tax'] = tax
@@ -132,8 +134,9 @@ salaries_file_path = 'salaries.csv'
 # Call the function to remove duplicates
 remove_duplicates(employees_file_path)
 
-# Call the function to add new employees
-add_new_employees(employees_file_path)
+# Create an instance of EmployeeAdder and add new employees
+employee_adder = EmployeeAdder(employees_file_path)
+employee_adder.add_new_employees()
 
 # Call the function to add missing information
 add_missing_info(employees_file_path)
